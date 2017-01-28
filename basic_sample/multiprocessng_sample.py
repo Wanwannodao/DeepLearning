@@ -1,5 +1,7 @@
 import multiprocessing as mp
 
+# this sample launch N parallel processes 
+
 def work(queue, data):
     total = 0
     for x in data:
