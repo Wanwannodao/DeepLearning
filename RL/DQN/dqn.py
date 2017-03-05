@@ -25,7 +25,7 @@ class DQN:
         target_Q = QFunction(input_shape, action_n, scope="target_Q")
 
         # Forward Q
-        self.s = tf.placeholder(shape=input_shape, dtype=tf.float32)
+        self.s = tf.placeholder(shape=[None]+input_shape[1:], dtype=tf.float32)
         self.a = tf.placeholder(shape=[self.batch_size, 1], dtype=tf.int32)
         self.probs = Q(self.s)
 
@@ -54,7 +54,7 @@ class DQN:
         self.target_train_op = copy_params(Q, target_Q)
         
         # replay buffer
-        self.D = collections.deque(maxlen=10 ** 6)
+        self.D = collections.deque(maxlen=500000)
         
     def update_target(self, sess):
         _ = sess.run(self.target_train_op)
