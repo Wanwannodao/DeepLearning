@@ -41,8 +41,15 @@ class DQN:
         self.done = tf.placeholder(shape=[self.batch_size, 1], dtype=tf.float32)
         self.r = tf.placeholder(shape=[self.batch_size, 1], dtype=tf.float32)
         self.s_ = tf.placeholder(shape=input_shape, dtype=tf.float32)
-        self.y = self.r + gamma*(1.0 - self.done)*tf.reduce_max(target_Q(self.s_), axis=1, keep_dims=True)
 
+        # D-DQN
+        a_max = tf.expand_dims(tf.argmax(Q(self.s_, reuse=True), axis=1), axis=1)
+        a_max = tf.to_int32(a_max)
+        target_q_val = tf.expand_dims(
+            tf.gather_nd(target_Q(self.s_),
+                         tf.concat(values=[first, a_max], concat_dim=1))
+            , axis=1)
+        self.y = self.r + gamma*(1.0 - self.done)*target_q_val
         # Error Clipping 
         self.loss = tf.reduce_mean(Hurber_loss(self.q_val, self.y))
 
