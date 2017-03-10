@@ -19,7 +19,7 @@ def Hurber_loss(x, y, delta=1.0):
                     0.5*tf.square(error),
                     delta*error - 0.5*tf.square(delta))
 class DDQN:
-    def __init__(self, input_shape, action_n, gamma=0.99, N=N):
+    def __init__(self, input_shape, action_n, gamma=0.99, N=50000):
         self.shape = input_shape
         self.batch_size = input_shape[0]
         self.N = N
@@ -30,7 +30,7 @@ class DDQN:
         # Forward Q
         self.s = tf.placeholder(shape=[None]+input_shape[1:], dtype=tf.float32)
         self.a = tf.placeholder(shape=[self.batch_size, 1], dtype=tf.int32)
-        self.probs = Q(self.s)
+        self.probs = Q(self.s, s_bias=False)
 
         # add offset 
         first = tf.expand_dims(tf.range(self.batch_size), axis=1)
@@ -58,7 +58,7 @@ class DDQN:
         opt = tf.train.RMSPropOptimizer(0.00025, 0.99, 0.0, 1e-6)
         grads_and_vars = opt.compute_gradients(self.loss)
         grads_and_vars = [[grad, var] for grad, var in grads_and_vars \
-                          if grad is not None and (var.name.startswith("Q") or var.name.startwith("shared")]
+                          if grad is not None and (var.name.startswith("Q") or var.name.startswith("shared"))]
         self.train_op = opt.apply_gradients(grads_and_vars)
         
         # Update target Q
