@@ -1,6 +1,6 @@
 import tensorflow as tf
 from model import QFunction
-import collections
+
 import numpy as np
 import random
 
@@ -19,7 +19,8 @@ def Hurber_loss(x, y, delta=1.0):
                     0.5*tf.square(error),
                     delta*error - 0.5*tf.square(delta))
 class DQN:
-    def __init__(self, input_shape, action_n, gamma=0.99):
+    def __init__(self, input_shape, action_n, gamma=0.99, N=50000):
+        self.N = N
         self.shape = input_shape
         self.batch_size = input_shape[0]
         
@@ -34,6 +35,7 @@ class DQN:
         # add offset 
         first = tf.expand_dims(tf.range(self.batch_size), axis=1)
         indices = tf.concat(values=[first, self.a], concat_dim=1)
+
         # gather corresiponding q_vals
         self.q_val = tf.expand_dims(tf.gather_nd(self.probs, indices), axis=1)
 
@@ -57,7 +59,7 @@ class DQN:
         self.target_train_op = copy_params(Q, target_Q)
         
         # replay buffer
-        self.D = collections.deque(maxlen=70000)
+        self.D = []
         
     def update_target(self, sess):
         _ = sess.run(self.target_train_op)
@@ -79,4 +81,13 @@ class DQN:
         return np.argmax(probs)
     
     def set_exp(self, exp):
-        self.D.append(exp)
+        if len(self.D) <= self.N:
+            self.D.append(exp)
+        else:
+            s, a, r, done, _ = self.D[0]            
+            self.D = self.D[1:]
+            self.D.append(exp)
+            
+            del s, a, r, done
+                        
+            
