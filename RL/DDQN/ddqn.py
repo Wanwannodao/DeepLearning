@@ -18,10 +18,11 @@ def Hurber_loss(x, y, delta=1.0):
     return tf.where(cond,
                     0.5*tf.square(error),
                     delta*error - 0.5*tf.square(delta))
-class DQN:
-    def __init__(self, input_shape, action_n, gamma=0.99):
+class DDQN:
+    def __init__(self, input_shape, action_n, gamma=0.99, N=N):
         self.shape = input_shape
         self.batch_size = input_shape[0]
+        self.N = N
         
         Q = QFunction(input_shape, action_n, scope="Q")
         target_Q = QFunction(input_shape, action_n, scope="target_Q")
@@ -57,14 +58,14 @@ class DQN:
         opt = tf.train.RMSPropOptimizer(0.00025, 0.99, 0.0, 1e-6)
         grads_and_vars = opt.compute_gradients(self.loss)
         grads_and_vars = [[grad, var] for grad, var in grads_and_vars \
-                          if grad is not None and var.name.startswith("Q")]
+                          if grad is not None and (var.name.startswith("Q") or var.name.startwith("shared")]
         self.train_op = opt.apply_gradients(grads_and_vars)
         
         # Update target Q
         self.target_train_op = copy_params(Q, target_Q)
         
         # replay buffer
-        self.D = collections.deque(maxlen=70000)
+        self.D = []
         
     def update_target(self, sess):
         _ = sess.run(self.target_train_op)
@@ -86,4 +87,11 @@ class DQN:
         return np.argmax(probs)
     
     def set_exp(self, exp):
-        self.D.append(exp)
+        if len(self.D) <= self.N:
+            self.D.append(exp)
+        else:
+            s, a, r, done, _ = self.D[0]            
+            self.D = self.D[1:]
+            self.D.append(exp)
+            
+            del s, a, r, done
