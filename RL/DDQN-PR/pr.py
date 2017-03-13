@@ -31,28 +31,21 @@ class PrioritizedReplayBuf:
 
         n = self.N if len(self.D) == self.N else len(self.D)
         # distribution
-        #dist = np.ones(shape=[n], dtype=np.float32) 
-        #dist = np.asarray(list(map(lambda d: d[1]/(d[0]+1), enumerate(dist))), dtype=np.float32)
         # maybe comprehension is faster than map
-
+        #dist = np.asarray(list(map(lambda d: d[1]/(d[0]+1), enumerate(dist))), dtype=np.float32)
         dist = np.asarray([(1.0/(i+1))**self.alpha for i in range(n)], dtype=np.float32)
-        #dist = dist**self.alpha
         self.p_n = np.sum(dist)
         dist = dist / self.p_n
 
         # for IS weights
-        self.p_n = 1.0 / (self.p_n*n)
+        self.p_n = self.p_n / n
 
         # cumulative distibution
         cdf = np.cumsum(dist)
 
         unit = (1.0 - cdf[0])/self.k
         # comprehension is faster
-        #self.seg = [ i for i in range(n) if cdf[i] > (len(self.seg)+1)*unit ]
         self.seg = [ np.searchsorted(cdf, cdf[0]+unit*i) for i in range(self.k) ]
-        #for i in range(n):
-        #    if cdf[i] > len(self.seg)*self.k_:
-        #        self.seg.append(i)
 
         # sentinel
         self.seg.append(n)
@@ -68,7 +61,7 @@ class PrioritizedReplayBuf:
 
     # linearly annealing
     def _anneal_beta(self):
-        self.beta -+ self.beta_step
+        self.beta -= self.beta_step
 
     def stratified_sample(self):
         
@@ -78,8 +71,8 @@ class PrioritizedReplayBuf:
         d_indices = [i['D'] for i in h]
         d = np.asarray(self.D)[d_indices]
         
-        rank = np.asarray([p['heap'] for p in d], dtype=np.float32)
-        is_w = (rank**self.alpha * self.p_n) ** self.beta
+        rank = np.asarray([ p['heap']+1 for p in d], dtype=np.float32)
+        is_w = ((1.0 / rank**self.alpha) * self.p_n)** self.beta
 
         del h_indices, d_indices, rank
         return d, is_w
@@ -88,7 +81,7 @@ class PrioritizedReplayBuf:
         self.D[h['D']]['heap'] = i
         
     def rebalance(self):
-        self.heap = sorted(self.heap, key=lambda h: h['delta'])
+        self.heap = sorted(self.heap, key=lambda h: h['delta'], reverse=True)
         map(self._f, enumerate(self.heap)) 
         
         
@@ -114,6 +107,7 @@ class PrioritizedReplayBuf:
 
         # maximum delta = maximum priority
         self._update(h, delta=1.0)
+
 
         self.cur += 1
         self.cur %= self.N
@@ -149,7 +143,7 @@ class PrioritizedReplayBuf:
                     break
     
     def insert(self, x, init=False):
-        if len(self.D) < self.N - 1:
+        if len(self.D) < self.N:
             i = len(self.D)
             self.D.append({'transition': x, 'heap': i})
             self.heap.append({'delta': 1.0, 'D': i})

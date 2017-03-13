@@ -40,7 +40,7 @@ class DDQN_PR:
         # Forward Q
         self.s = tf.placeholder(shape=[None]+input_shape[1:], dtype=tf.float32)
         self.a = tf.placeholder(shape=[self.batch_size, 1], dtype=tf.int32)
-        self.probs = Q(self.s, s_bias=True)
+        self.probs = Q(self.s, s_bias=False)
 
         # add offset 
         first = tf.expand_dims(tf.range(self.batch_size), axis=1)
@@ -87,7 +87,8 @@ class DDQN_PR:
         d, is_w = self.pr.stratified_sample()
         is_w = np.expand_dims(is_w, axis=1)
         samples = [ e['transition']for e in d]
-        
+
+    
         s = np.asarray([sample[0] for sample in samples], dtype=np.float32)
         a = np.asarray([[sample[1]] for sample in samples], dtype=np.int32)
         r = np.asarray([[sample[2]] for sample in samples], dtype=np.float32)

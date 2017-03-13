@@ -42,4 +42,4 @@ class QFunction:
                      
     def __call__(self, X, reuse=False, s_bias=True):
         
-        return self._model(X, reuse=reuse, s_bias)
+        return self._model(X, reuse=reuse, s_bias=s_bias)
