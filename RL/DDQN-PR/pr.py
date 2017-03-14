@@ -79,7 +79,7 @@ class PrioritizedReplayBuf:
         #    print ("{}, ".format(v['delta']))
         #print("\n")
         
-        is_w = ((1.0 / rank**self.alpha) * self.p_n)** self.beta
+        is_w = ((rank**self.alpha) * self.p_n)** self.beta
 
         del h_indices, d_indices, rank
         return d, is_w
