@@ -81,8 +81,8 @@ def main(_):
         global_step = 0
 
         saver = tf.train.Saver()
-        if FLAGS.restore and os.path.exists("./model.ckpt"):
-            saver.restore(sess, "./model.ckpt")
+        if FLAGS.restore and os.path.exists("./checkpoint/model.ckpt"):
+            saver.restore(sess, "./checkpoint/model.ckpt")
         else:
             sess.run(tf.global_variables_initializer())
         for episode in range(FLAGS.episode):

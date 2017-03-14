@@ -61,7 +61,7 @@ class PrioritizedReplayBuf:
 
     # linearly annealing
     def _anneal_beta(self):
-        self.beta -= self.beta_step
+        self.beta += self.beta_step
 
     def stratified_sample(self):
         
@@ -71,7 +71,14 @@ class PrioritizedReplayBuf:
         d_indices = [i['D'] for i in h]
         d = np.asarray(self.D)[d_indices]
         
-        rank = np.asarray([ p['heap']+1 for p in d], dtype=np.float32)
+        rank = np.asarray([ p['heap']+1 for p in d], dtype=np.int32)
+
+        #print("seg:{} \n".format(self.seg)) 
+        #print("rank:{} \n".format(rank))
+        #for v in h:
+        #    print ("{}, ".format(v['delta']))
+        #print("\n")
+        
         is_w = ((1.0 / rank**self.alpha) * self.p_n)** self.beta
 
         del h_indices, d_indices, rank

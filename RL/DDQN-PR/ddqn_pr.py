@@ -11,7 +11,7 @@ def copy_params(src, dst):
     dst_params = [v for v in tf.trainable_variables() if v.name.startswith(dst.scope)]
 
     op = [d.assign(s) for s, d in zip(src_params, dst_params)]
-
+3
     return op
 
 def Hurber_loss(x, y, delta=1.0):
@@ -62,13 +62,14 @@ class DDQN_PR:
             , axis=1)
         self.y = self.r + gamma*(1.0 - self.done)*target_q_val
         # Error Clipping
-        # TODO: is this correct ??
-        self.loss = tf.reduce_mean(self.is_w * Hurber_loss(self.q_val, self.y))
-        
         # TD-error
-        self.delta = tf.abs(self.y - self.q_val)
+        self.delta = Hurber_loss(self.q_val, self.y)
+        # Importance sampling 
+        self.loss = tf.reduce_mean(self.is_w * self.delta)
+        
 
         # Update Q
+        # reducing step-size by a factor of four
         opt = tf.train.RMSPropOptimizer(0.00025/4, 0.99, 0.0, 1e-6)
         grads_and_vars = opt.compute_gradients(self.loss)
         grads_and_vars = [[grad, var] for grad, var in grads_and_vars \
@@ -87,7 +88,6 @@ class DDQN_PR:
         d, is_w = self.pr.stratified_sample()
         is_w = np.expand_dims(is_w, axis=1)
         samples = [ e['transition']for e in d]
-
     
         s = np.asarray([sample[0] for sample in samples], dtype=np.float32)
         a = np.asarray([[sample[1]] for sample in samples], dtype=np.int32)
