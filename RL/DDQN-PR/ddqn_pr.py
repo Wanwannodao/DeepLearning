@@ -11,7 +11,7 @@ def copy_params(src, dst):
     dst_params = [v for v in tf.trainable_variables() if v.name.startswith(dst.scope)]
 
     op = [d.assign(s) for s, d in zip(src_params, dst_params)]
-3
+
     return op
 
 def Hurber_loss(x, y, delta=1.0):
