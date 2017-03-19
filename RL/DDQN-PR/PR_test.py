@@ -2,8 +2,8 @@ from pr import PrioritizedReplayBuf
 
 pr = PrioritizedReplayBuf(10000, 0.5, 1.0, 10000, 32)
 
-for i in range(10000):
-    pr.insert((i,))
+for i in range(20000):
+    pr.insert((i,1, 1, 1, 1))
 """
 print("{}".format(pr.D))
 print("{}".format(pr.heap))
@@ -33,26 +33,26 @@ print("{}".format(pr.heap))
 import numpy as np
 import matplotlib.pyplot as plt
 
-dist, cdf = pr._interval()
-y = cdf[pr.seg[:-1]]
+#dist, cdf = pr._interval()
+#y = cdf[pr.seg[:-1]]
 
 
-fig = plt.figure()
-ax = fig.add_subplot(211)
-ax2 = fig.add_subplot(212)
+#fig = plt.figure()
+#ax = fig.add_subplot(211)
+#ax2 = fig.add_subplot(212)
 
-ax.clear()
-ax.plot(dist)
-ax.set_xlabel("i")
-ax.set_ylabel("P(i)")
-ax.grid(True)
-ax2.clear()
-ax2.plot(cdf)
-ax2.set_xlabel("i")
-ax2.set_ylabel("$P(I <= i)$")
-ax2.grid(True)
+#ax.clear()
+#ax.plot(dist)
+#ax.set_xlabel("i")
+#ax.set_ylabel("P(i)")
+#ax.grid(True)
+#ax2.clear()
+#ax2.plot(cdf)
+#ax2.set_xlabel("i")
+#ax2.set_ylabel("$P(I <= i)$")
+#ax2.grid(True)
 
-ax2.vlines(pr.seg, 0, 1, linestyle='dotted')
+#ax2.vlines(pr.seg, 0, 1, linestyle='dotted')
 #ax3.plot(pr.seg[:-1], y, 'o')
 
 
