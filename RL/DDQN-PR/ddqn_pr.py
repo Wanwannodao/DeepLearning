@@ -64,8 +64,9 @@ class DDQN_PR:
         # Error Clipping
         # TD-error
         self.delta = Hurber_loss(self.q_val, self.y)
-        # Importance sampling 
-        self.loss = tf.reduce_mean(self.is_w * self.delta)
+        # Importance sampling
+        max_is = tf.reduce_max(self.is_w)
+        self.loss = tf.reduce_mean( (self.is_w / max_is)  * self.delta)
         
 
         # Update Q
