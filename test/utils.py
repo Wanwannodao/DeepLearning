@@ -26,7 +26,9 @@ def _build_vocab(filename):
     return word_to_id
 
 def _to_word_ids(filename, word_to_id):
-    data = _read_words(filename)
+    with open(filename, "r") as f:
+        data =  f.read().replace("\n", "<eos>").split()
+
     return [word_to_id[word] for word in data if word in word_to_id]
 
 def _download_data(filename, filepath, data_dir):
