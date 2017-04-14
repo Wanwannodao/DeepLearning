@@ -6,6 +6,29 @@ import tarfile
 import urllib.request
 import numpy as np
 import collections
+import random
+
+import tensorflow as tf
+
+# ====================
+# ops
+# ====================
+
+def LSTM(size, is_tuple=True, dropout=False, prob=0.5):
+    cell = None
+    if 'reuse' in inspect.getargspec(
+            tf.contrib.rnn.BasicLSTMCell.__init__).args:
+        cell = tf.contrib.rnn.BasicLSTMCell(
+            size, forget_bias=0.0, state_is_tuple=is_tuple,
+            reuse=tf.get_variable_scope().reuse)
+    else:
+        cell = tf.contrib.rnn.BasicLSTMCell(
+            size, forget_bias=0.0, state_is_tuple=is_tuple)
+
+    if dropout:
+        return tf.contrib.rnn.DropoutWrapper(
+            cell, output_keep_prob=prob)
+    return cell
 
 # ====================
 # Data Loader 
@@ -75,5 +98,13 @@ class Loader:
         self.data_dir = data_dir
         self.data_name = data_name
         self.batch_size = batch_size
-        self.cur = 0
 
+        self.train_data, self.valid_data, self.test_data, self.vocab
+        = _load_data(data_dir, data_name)
+
+    def train_batch(self):
+        
+
+    def valid_batch(self):
+        
+        
