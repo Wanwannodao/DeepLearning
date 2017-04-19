@@ -14,7 +14,7 @@ import tensorflow as tf
 # ops
 # ====================
 
-def LSTM(size, is_tuple=True, dropout=False, prob=0.5):
+def LSTM(size, is_tuple=True, prob=1.0):
     cell = None
     if 'reuse' in inspect.getargspec(
             tf.contrib.rnn.BasicLSTMCell.__init__).args:
@@ -25,10 +25,24 @@ def LSTM(size, is_tuple=True, dropout=False, prob=0.5):
         cell = tf.contrib.rnn.BasicLSTMCell(
             size, forget_bias=0.0, state_is_tuple=is_tuple)
 
-    if dropout:
+    if prob < 1.0:
         return tf.contrib.rnn.DropoutWrapper(
             cell, output_keep_prob=prob)
     return cell
+
+def fc(x, in_dim, out_dim, bn=False, activation_fn=None, scope="fc"):
+    with tf.variable_scope(scope):
+        W = tf.get_variable("W", [in_dim, out_dim], dtype=tf.float32,
+                            initializer=tf.random_normal_initializer(stddev=0.02))
+        b = tf.get_variable("b", [out_dim], dtype=tf.float32,
+                            initializer=tf.constant_initializer(0.0))
+        fc = tf.nn.bias_add(tf.matmul(x, W), b)
+        if bn:
+            fc = batch_norm(fc, axes=[0])
+            
+        if activation_fn is not None:
+            return activation_fn(fc)
+        return fc
 
 # ====================
 # Data Loader 
@@ -70,7 +84,8 @@ def _download_data(filename, filepath, data_dir):
         tar_.extractall(path=data_dir)
         os.remove(filepath)
 
-def _load_data(data_dir, data_name):
+
+def ptb_raw_data(data_dir, data_name):
     data_dir = os.path.join(data_dir, data_name)
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
@@ -92,19 +107,5 @@ def _load_data(data_dir, data_name):
     vocab = len(word_to_id)
 
     return train_data, valid_data, test_data, vocab
-            
-class Loader:
-    def __init__(self, data_dir, data_name, batch_size):
-        self.data_dir = data_dir
-        self.data_name = data_name
-        self.batch_size = batch_size
 
-        self.train_data, self.valid_data, self.test_data, self.vocab
-        = _load_data(data_dir, data_name)
-
-    def train_batch(self):
-        
-
-    def valid_batch(self):
-        
-        
+# todo ptb producer
