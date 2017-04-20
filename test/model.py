@@ -12,8 +12,8 @@ class PTBModel():
         size       = config.hidden_size
         vocab_size = config.vocab_size
 
-        lstm = utils.LSTM(size, is_tuple=True, prob=confg.keep_prob)
-        cell = tf.contrib.rnn.MultiRNNCell(
+        lstm = utils.LSTM(size, is_tuple=True, prob=config.keep_prob)
+        cell = tf.nn.rnn_cell.MultiRNNCell(
             [lstm] * config.num_layers, state_is_tuple=True)
 
         self._initial_state = cell.zero_state(batch_size, tf.float32)
@@ -32,16 +32,21 @@ class PTBModel():
         state = self._initial_state
         with tf.variable_scope("RNN"):
             for i in range(num_steps):
-                if i > 0: tf.get_variabel_scope().reuse_variables()
+                if i > 0: tf.get_variable_scope().reuse_variables()
                 out, state = cell(inputs[:, i, :], state)
                 outs.append(out)
-        out = tf.reshape(tf.concat(axis=1, values=outs), [-1, size])
+        outs = tf.stack(outs)
+        #s = tf.concat(outs, 1)
+        out = tf.reshape(outs, [-1, size])
 
-        logits = utils.fc(out, size, vocab_size, scope="fc")        
-        loss   = tf.contrib.legacy_seq2seq.sequence_loss_by_example(
-            [logits],
-            [tf.reshape(input_.targets, [-1])],
-            [tf.ones([batch_size*num_steps], dtype=tf.float32)] )
+        logits = utils.fc(out, size, vocab_size, scope="fc")
+        loss = tf.nn.softmax_cross_entropy_with_logits(
+            logits,
+            tf.reshape(input_.targets, [-1]))
+        #loss   = tf.contrib.seq2seq.sequence_loss(
+        #    [logits],
+        #    [tf.reshape(input_.targets, [-1])],
+        #    [tf.ones([batch_size*num_steps], dtype=tf.float32)] )
         self._cost = cost = tf.reduce_sum(loss) / batch_size
         self._final_state = state
 
@@ -63,7 +68,7 @@ class PTBModel():
         self._lr_update = tf.assign(self._lr, self._new_lr)
 
     def assign_lr(self, sess, lr):
-        sess.run(self._lr_update, feed_dict={self._new_lr: lr_value)}
+        sess.run(self._lr_update, feed_dict={self._new_lr: lr_value})
                                 
     @property
     def input(self):

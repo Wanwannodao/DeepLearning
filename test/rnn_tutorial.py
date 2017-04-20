@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import tensorflow as tf
-import model.StackedLSTM
-import reader
-import model.PTBModel
+import utils
+from model import PTBModel
 
 flags = tf.app.flags
 flags.DEFINE_integer("batch_size", 32, "size of batch")
 flags.DEFINE_integer("lstm_size", 1, "size of lstm")
 flags.DEFINE_integer("num_layers", 1, "# of lstm layers")
 flags.DEFINE_integer("num_steps", 1, "# of steps")
+flags.DEFINE_string("data_dir", "./data", "data dir")
+flags.DEFINE_string("data_name", "PTB", "data name")
 FLAGS = flags.FLAGS
 
 class PTBInput():
@@ -17,7 +18,7 @@ class PTBInput():
         self.batch_size = batch_size = config.batch_size
         self.num_steps  = num_steps  = config.num_steps
         self.epoch_size = ((len(data) // batch_size) - 1) // num_steps
-        self.input_data, self.targets = reader.ptb_producer(
+        self.input_data, self.targets = utils.ptb_producer(
             data, batch_size, num_steps, name=name)
     
 class SmallConfig():
@@ -66,7 +67,7 @@ def get_config():
 def main(_):
 
     # read data
-    raw_data = reader.ptb_raw_data(FLAGS.data_path)
+    raw_data = utils.ptb_raw_data(FLAGS.data_dir, FLAGS.data_name)
     train_data, valid_data, test_data, _ = raw_data
 
     config = get_config()

@@ -7,7 +7,7 @@ import urllib.request
 import numpy as np
 import collections
 import random
-
+import inspect 
 import tensorflow as tf
 
 # ====================
@@ -17,12 +17,12 @@ import tensorflow as tf
 def LSTM(size, is_tuple=True, prob=1.0):
     cell = None
     if 'reuse' in inspect.getargspec(
-            tf.contrib.rnn.BasicLSTMCell.__init__).args:
-        cell = tf.contrib.rnn.BasicLSTMCell(
+            tf.nn.rnn_cell.BasicLSTMCell.__init__).args:
+        cell = tf.nn.rnn_cell.BasicLSTMCell(
             size, forget_bias=0.0, state_is_tuple=is_tuple,
             reuse=tf.get_variable_scope().reuse)
     else:
-        cell = tf.contrib.rnn.BasicLSTMCell(
+        cell = tf.nn.rnn_cell.BasicLSTMCell(
             size, forget_bias=0.0, state_is_tuple=is_tuple)
 
     if prob < 1.0:
@@ -108,4 +108,24 @@ def ptb_raw_data(data_dir, data_name):
 
     return train_data, valid_data, test_data, vocab
 
-# todo ptb producer
+def ptb_producer(raw_data, batch_size, num_steps, name=None):
+    with tf.name_scope(name, "PTBProducer", [raw_data, batch_size, num_steps]):
+        raw_data  = tf.convert_to_tensor(raw_data, name="raw_data", dtype=tf.int32)
+        data_len  = tf.size(raw_data)
+        batch_len = data_len // batch_size
+        data      = tf.reshape(raw_data[0 : batch_size * batch_len],
+                               [batch_size, batch_len])
+        
+        epoch_size = (batch_len - 1) // num_steps
+
+        i = tf.train.range_input_producer(epoch_size, shuffle=False).dequeue()
+
+        x = tf.strided_slice(data, [0, i * num_steps],
+                             [batch_size, (i + 1) * num_steps],
+                             tf.ones_like([0, i * num_steps]))
+        x.set_shape([batch_size, num_steps])
+        y = tf.strided_slice(data, [0, i * num_steps + 1],
+                             [batch_size, (i + 1) * num_steps + 1],
+                             tf.ones_like([0, i * num_steps]))
+        y.set_shape([batch_size, num_steps])
+        return x, y
