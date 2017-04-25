@@ -40,9 +40,7 @@ class PTBModel():
         out = tf.reshape(outs, [-1, size])
 
         logits = utils.fc(out, size, vocab_size, scope="fc")
-        loss = tf.nn.softmax_cross_entropy_with_logits(
-            logits,
-            tf.reshape(input_.targets, [-1]))
+        loss = -tf.log(logits)
         #loss   = tf.contrib.seq2seq.sequence_loss(
         #    [logits],
         #    [tf.reshape(input_.targets, [-1])],
@@ -58,7 +56,7 @@ class PTBModel():
         grads, _  = tf.clip_by_global_norm(tf.gradients(cost, tvars),
                                           config.max_grad_norm)
         optimizer = tf.train.GradientDescentOptimizer(self._lr)
-        self._train_op = optimizer.apply_gradinets(
+        self._train_op = optimizer.apply_gradients(
             zip(grads, tvars),
             global_step=tf.contrib.framework.get_or_create_global_step())
 
@@ -67,7 +65,7 @@ class PTBModel():
             tf.float32, shape=[], name="new_lr")
         self._lr_update = tf.assign(self._lr, self._new_lr)
 
-    def assign_lr(self, sess, lr):
+    def assign_lr(self, sess, lr_value):
         sess.run(self._lr_update, feed_dict={self._new_lr: lr_value})
                                 
     @property
