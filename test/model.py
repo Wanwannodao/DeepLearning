@@ -15,15 +15,14 @@ class PTBModel():
         lstm = utils.LSTM(size, is_tuple=True, prob=config.keep_prob)
         cell = tf.nn.rnn_cell.MultiRNNCell(
             [lstm] * config.num_layers, state_is_tuple=True)
-
         self._initial_state = cell.zero_state(batch_size, tf.float32)
 
         # word embedding
-        with tf.device("/cpu:0"):
-            embedding = tf.get_variable(
-                "embedding", [vocab_size, size], dtype=tf.float32)
+        #with tf.device("/cpu:0"):
+        embedding = tf.get_variable(
+            "embedding", [vocab_size, size], dtype=tf.float32)
             # word IDs to embedding mat
-            inputs = tf.nn.embedding_lookup(embedding, input_.input_data)
+        inputs = tf.nn.embedding_lookup(embedding, input_.input_data)
 
         if is_training and config.keep_prob < 1:
             inputs = tf.nn.dropout(inputs, config.keep_prob)
@@ -33,10 +32,12 @@ class PTBModel():
         with tf.variable_scope("RNN"):
             for i in range(num_steps):
                 if i > 0: tf.get_variable_scope().reuse_variables()
-                out, state = cell(inputs[:, i, :], state)
-                outs.append(out)
+                (cell_out, state) = cell(inputs[:, i, :], state)
+                outs.append(cell_out)
+
         outs = tf.stack(outs)
-        #s = tf.concat(outs, 1)
+        #uts = tf.concat(outs, 1)
+        
         out = tf.reshape(outs, [-1, size])
 
         logits = utils.fc(out, size, vocab_size, scope="fc")

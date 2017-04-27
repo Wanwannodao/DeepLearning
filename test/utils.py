@@ -117,6 +117,7 @@ def ptb_producer(raw_data, batch_size, num_steps, name=None):
                                [batch_size, batch_len])
         
         epoch_size = (batch_len - 1) // num_steps
+        epoch_size = tf.identity(epoch_size, name="epoch_size")
 
         i = tf.train.range_input_producer(epoch_size, shuffle=False).dequeue()
 

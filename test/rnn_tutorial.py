@@ -48,16 +48,16 @@ def run_epoch(sess, model, eval_op=None):
     }
     if eval_op is not None:
         fetches["eval_op"] = eval_op
-
+        
     for step in range(model.input.epoch_size):
         feed_dict = {}
         for i, (c, h) in enumerate(model.initial_state):
             feed_dict[c] = state[i].c
             feed_dict[h] = state[i].h
-
+        
         vals = sess.run(fetches, feed_dict)
         cost = vals["cost"]
-        state = vals["state"]
+        state = vals["final_state"]
 
         costs += cost
         iters += model.input.num_steps
@@ -72,44 +72,50 @@ def main(_):
     # read data
     raw_data = utils.ptb_raw_data(FLAGS.data_dir, FLAGS.data_name)
     train_data, valid_data, test_data, _ = raw_data
-
+    
     config = get_config()
     eval_config = get_config()
     
-    with tf.Graph().as_default():
-        initializer = tf.random_uniform_initializer(-config.init_scale,
-                                                    config.init_scale)
 
-        with tf.name_scope("Train"):
-            train_input = PTBInput(config=config, data=train_data, name="TrainInput")
-            with tf.variable_scope("Model", reuse=None, initializer=initializer):
-                m = PTBModel(is_training=True, config=config, input_=train_input)
+    initializer = tf.random_uniform_initializer(-config.init_scale,
+                                                config.init_scale)
 
-        with tf.name_scope("Valid"):
-            valid_input = PTBInput(config=config, data=valid_data, name="ValidInput")
-            with tf.variable_scope("Model", reuse=True, initializer=initializer):
-                mvalid = PTBModel(is_training=False, config=config, input_=valid_input)
+    with tf.name_scope("Train"):
+        train_input = PTBInput(config=config, data=train_data, name="TrainInput")
+        with tf.variable_scope("Model", reuse=None, initializer=initializer):
+            m = PTBModel(is_training=True, config=config, input_=train_input)
 
-        with tf.name_scope("Test"):
-            test_input = PTBInput(config=config, data=test_data, name="Test")
-            with tf.variable_scope("Model", reuse=True, initializer=initializer):
-                mtest = PTBModel(is_training=False, config=eval_config, input_=test_input)
+    with tf.name_scope("Valid"):
+        valid_input = PTBInput(config=config, data=valid_data, name="ValidInput")
+        with tf.variable_scope("Model", reuse=True, initializer=initializer):
+            mvalid = PTBModel(is_training=False, config=config, input_=valid_input)
+                
+    with tf.name_scope("Test"):
+        test_input = PTBInput(config=config, data=test_data, name="Test")
+        with tf.variable_scope("Model", reuse=True, initializer=initializer):
+            mtest = PTBModel(is_training=False, config=eval_config, input_=test_input)
                 
             
-        with tf.Session() as sess:
-            for i in range(config.max_max_epoch):
-                lr_decay = config.lr_decay ** max(i + 1 - config.max_epoch, 0.0)
-                m.assign_lr(sess, config.lr * lr_decay)
-                print("Epoch: %d Learning rate: %.3f" % (i + 1, sess.run(m.lr)))
-                train_perplexity = run_epoch(sess, m, eval_op=m.train_op)
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
 
-                print("Epoch: %d Train Perplexity: %.3f" % (i + 1, train_perplexity))
-
-                valid_perplexity = run_epoch(sess, mvalid)
-                print("Epoch: %d Valid Perplexity: %.3f" % (i + 1, valid_perplexity))
-
-            test_perplexity = run_epoch(sess, mtest)
-            print("Test Perplexity: %.3f" % test_perplexity)
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+        
+        for i in range(config.max_max_epoch):
+            lr_decay = config.lr_decay ** max(i + 1 - config.max_epoch, 0.0)
+            m.assign_lr(sess, config.lr * lr_decay)
+            print("Epoch: %d Learning rate: %.3f" % (i + 1, sess.run(m.lr)))
+            train_perplexity = run_epoch(sess, m, eval_op=m.train_op)
             
+            print("Epoch: %d Train Perplexity: %.3f" % (i + 1, train_perplexity))
+
+            valid_perplexity = run_epoch(sess, mvalid)
+            print("Epoch: %d Valid Perplexity: %.3f" % (i + 1, valid_perplexity))
+
+        test_perplexity = run_epoch(sess, mtest)
+        print("Test Perplexity: %.3f" % test_perplexity)
+        coord.request_stop()
+        coord.join(threads)
 if __name__ == "__main__":
     tf.app.run()
