@@ -3,6 +3,7 @@
 import tensorflow as tf
 import time
 import utils
+import numpy as np
 from model import PTBModel
 
 flags = tf.app.flags
