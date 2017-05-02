@@ -59,7 +59,7 @@ def run_epoch(sess, model, eval_op=None):
         vals = sess.run(fetches, feed_dict)
         cost = vals["cost"]
         state = vals["final_state"]
-
+        
         costs += cost
         iters += model.input.num_steps
 

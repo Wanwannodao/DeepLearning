@@ -18,11 +18,11 @@ class PTBModel():
         self._initial_state = cell.zero_state(batch_size, tf.float32)
 
         # word embedding
-        #with tf.device("/cpu:0"):
-        embedding = tf.get_variable(
-            "embedding", [vocab_size, size], dtype=tf.float32)
+        with tf.device("/cpu:0"):
+            embedding = tf.get_variable(
+                "embedding", [vocab_size, size], dtype=tf.float32)
             # word IDs to embedding mat
-        inputs = tf.nn.embedding_lookup(embedding, input_.input_data)
+            inputs = tf.nn.embedding_lookup(embedding, input_.input_data)
 
         if is_training and config.keep_prob < 1:
             inputs = tf.nn.dropout(inputs, config.keep_prob)
@@ -35,13 +35,13 @@ class PTBModel():
                 (cell_out, state) = cell(inputs[:, i, :], state)
                 outs.append(cell_out)
 
-        outs = tf.stack(outs)
-        #uts = tf.concat(outs, 1)
-        
+        outs = tf.concat(1, outs)
         out = tf.reshape(outs, [-1, size])
-
         logits = utils.fc(out, size, vocab_size, scope="fc")
-        loss = -tf.log(logits)
+        
+        targets = tf.one_hot(input_.targets, depth=vocab_size, dtype=tf.float32)
+        loss = tf.nn.softmax_cross_entropy_with_logits(labels=targets,
+                                                       logits=logits)
         #loss   = tf.contrib.seq2seq.sequence_loss(
         #    [logits],
         #    [tf.reshape(input_.targets, [-1])],
