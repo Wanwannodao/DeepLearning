@@ -1,0 +1,9 @@
+import gzip
+import os
+import re
+import tarfile
+
+import six.moves import urllib
+
+import tensorflow as tf
+
