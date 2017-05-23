@@ -3,9 +3,54 @@
 
 import tensorflow as tf
 import numpy as np
+import inspect
 
 _GO  = "output"
 _PAD = -1
+
+# ====================
+# ops
+# ====================
+
+# basic lstm cell (with dropout layer)
+def LSTM(size, is_tuple=True, init=None, prob=1.0):
+    cell = tf.contrib.rnn.LSTMCell(num_units=size,
+                                   use_peepholes=False,
+                                   initializer=init,
+                                   state_is_tuple=is_tuple,
+                                   reuse=tf.get_variable_scope().reuse)
+                                   
+    if prob < 1.0:
+        return tf.contrib.rnn.DropoutWrapper(
+            cell, output_keep_prob=prob)
+
+    return cell
+
+# batch normalization
+def batch_norm(x, axes):
+    mean, var = tf.nn.moments(x, axes=axes)
+    return tf.nn.batch_normalization(x, mean, var, None, None, 1e-5)
+
+# fully connected layer
+def fc(x, in_dim, out_dim, bn=False, a_fn=None, scope="fc"):
+    with tf.variable_scope(scope):
+        W  = tf.get_variable("W", [in_dim, out_dim], dtype=tf.float32,
+                             initializer=tf.random_normal_initializer(stddev=0.02))
+        b  = tf.get_variable("b", [out_dim], dtype=tf.flaot32,
+                             initializer=tf.constant_initializer(0.0))
+        fc = tf.nn.bias_add(tf.matmul(x, W), b)
+
+        if bn:
+            fc = batch_norm(fc, axes=[0])
+
+        if a_fn is not None:
+            return a_fn(fc)
+
+        return fc
+    
+# ====================
+# data loder
+# ====================
 
 def _load_data(data_path):
     enc_in  = []
@@ -36,6 +81,10 @@ def _load_data(data_path):
             dec_out = np.asarray(dec_out, dtype=np.int32)
             
             return enc_in, dec_out
+
+# ====================
+# batch generator
+# ====================
 
 def batch_producer(enc, dec, batch_size, name=None):
     data_len   = enc.shape[0]
