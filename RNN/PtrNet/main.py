@@ -34,8 +34,8 @@ def main(_):
         coord   = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
-        print(sess.run(ptrnet.enc_final_state))
-        
+        #print(sess.run(ptrnet.enc_final_state))
+        print(sess.run(ptrnet.C))
         coord.request_stop()
         coord.join(threads)
 

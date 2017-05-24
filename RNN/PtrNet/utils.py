@@ -78,7 +78,7 @@ def _load_data(data_path):
 
             enc_in  = np.asarray(enc_in, dtype=np.float32)
             enc_in  = np.reshape(enc_in, [data_len, len(enc_in[0]) // 2, 2])
-            dec_out = np.asarray(dec_out, dtype=np.int32)
+            dec_out = np.asarray(dec_out, dtype=np.float32)
             
             return enc_in, dec_out
 
@@ -95,7 +95,7 @@ def batch_producer(enc, dec, batch_size, name=None):
     
     with tf.name_scope(name, "batch", [enc, dec, batch_size]):
         enc = tf.convert_to_tensor(enc, name="enc", dtype=tf.float32)
-        dec = tf.convert_to_tensor(dec, name="dec", dtype=tf.int32) 
+        dec = tf.convert_to_tensor(dec, name="dec", dtype=tf.float32) 
 
         # generator 
         i = tf.train.range_input_producer(epoch_size, shuffle=False).dequeue()
