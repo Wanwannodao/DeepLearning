@@ -36,7 +36,7 @@ def fc(x, in_dim, out_dim, bn=False, a_fn=None, scope="fc"):
     with tf.variable_scope(scope):
         W  = tf.get_variable("W", [in_dim, out_dim], dtype=tf.float32,
                              initializer=tf.random_normal_initializer(stddev=0.02))
-        b  = tf.get_variable("b", [out_dim], dtype=tf.flaot32,
+        b  = tf.get_variable("b", [out_dim], dtype=tf.float32,
                              initializer=tf.constant_initializer(0.0))
         fc = tf.nn.bias_add(tf.matmul(x, W), b)
 
@@ -101,9 +101,9 @@ def batch_producer(enc, dec, batch_size, name=None):
         i = tf.train.range_input_producer(epoch_size, shuffle=False).dequeue()
 
         x = tf.strided_slice(enc, [0, 0, 0],
-                             [batch_size, seq_len // 2, 2],
+                             [batch_size, seq_len, 2],
                              [1, 1, 1])
-        x.set_shape([batch_size, seq_len // 2, 2 ])
+        x.set_shape([batch_size, seq_len, 2 ])
 
         y = tf.strided_slice(dec, [0, 0],
                              [batch_size, seq_len],

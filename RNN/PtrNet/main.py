@@ -34,14 +34,10 @@ def main(_):
         coord   = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
-        sess.run(ptrnet.enc_final_state)
+        print(sess.run(ptrnet.enc_final_state))
         
         coord.request_stop()
         coord.join(threads)
-                    
-                
-                    
-                    
 
 if __name__ == "__main__":
     tf.app.run()

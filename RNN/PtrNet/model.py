@@ -21,7 +21,7 @@ class PtrNet():
 
         with tf.variable_scope("enc"):
             for i in range(num_steps):                
-                if i > 0: tf.get_variable_scope().resue_variables()
+                if i > 0: tf.get_variable_scope().reuse_variables()
 
                 inputs  = input_.input_data[:, i, :]
 
