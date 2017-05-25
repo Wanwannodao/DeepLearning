@@ -32,12 +32,17 @@ def batch_norm(x, axes):
     return tf.nn.batch_normalization(x, mean, var, None, None, 1e-5)
 
 # fully connected layer
-def fc(x, in_dim, out_dim, bn=False, a_fn=None, scope="fc"):
+def fc(x, in_dim, out_dim, init_w=None, init_b=None, bn=False, a_fn=None, scope="fc"):
+    if init_w is None:
+        init_w = tf.random_noramal_initializer(stddev=0.02)
+    if init_b is None:
+        init_b = tf.constant_initializer(0.0)
+        
     with tf.variable_scope(scope):
         W  = tf.get_variable("W", [in_dim, out_dim], dtype=tf.float32,
-                             initializer=tf.random_normal_initializer(stddev=0.02))
+                             initializer=init_w)
         b  = tf.get_variable("b", [out_dim], dtype=tf.float32,
-                             initializer=tf.constant_initializer(0.0))
+                             initializer=init_b)
         fc = tf.nn.bias_add(tf.matmul(x, W), b)
 
         if bn:
