@@ -6,7 +6,7 @@ import numpy as np
 import inspect
 
 _GO  = "output"
-_PAD = -1
+_STOP = 51
 
 # ====================
 # ops
@@ -70,10 +70,14 @@ def _load_data(data_path):
                 if len(line) == 2:
                     enc = line[0].strip().split()
                     dec = line[1].strip().split()
-                    
+
+                    # based on fig.1 (b)
+                    enc.insert(0, '-1.0')
+                    enc.insert(0, '-1.0')
+
                     # TODO: is this necessary ??
-                    while len(dec) != len(enc):
-                        dec = np.append(dec, _PAD)
+                    while len(dec) != len(enc) // 2:
+                        dec = np.append(dec, _STOP)
 
                     enc_in.append(enc)
                     dec_out.append(dec)
@@ -83,7 +87,7 @@ def _load_data(data_path):
 
             enc_in  = np.asarray(enc_in, dtype=np.float32)
             enc_in  = np.reshape(enc_in, [data_len, len(enc_in[0]) // 2, 2])
-            dec_out = np.asarray(dec_out, dtype=np.float32)
+            dec_out = np.asarray(dec_out, dtype=np.int32)
             
             return enc_in, dec_out
 
@@ -100,7 +104,7 @@ def batch_producer(enc, dec, batch_size, name=None):
     
     with tf.name_scope(name, "batch", [enc, dec, batch_size]):
         enc = tf.convert_to_tensor(enc, name="enc", dtype=tf.float32)
-        dec = tf.convert_to_tensor(dec, name="dec", dtype=tf.float32) 
+        dec = tf.convert_to_tensor(dec, name="dec", dtype=tf.int32) 
 
         # generator 
         i = tf.train.range_input_producer(epoch_size, shuffle=False).dequeue()

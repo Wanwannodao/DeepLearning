@@ -43,7 +43,7 @@ class PtrNet():
         # ( fc > elu > lstm > v^t tanh(W1 e + W2 d) > softmax > argmax )
         print(in_shape)
         dec_state  = enc_states[-1]
-        dec_inputs = tf.constant(-2.0,
+        dec_inputs = tf.constant(0.0,
                                  shape=[batch_size, 2],
                                  dtype=tf.float32) # start symbol
         
@@ -97,14 +97,19 @@ class PtrNet():
                                           tf.concat(values=[first, C_i],
                                                     axis=1))
                 
-                self.C.append(C_i)
+                self.C.append(probs)
                 
         C = tf.squeeze(tf.stack(self.C, axis=1))
         
         print(C.get_shape())
         print(input_.targets.get_shape())
+
+        targets = tf.one_hot(input_.targets,
+                       depth=51)
+
+        print(t.get_shape())
         
-        self.loss = tf.nn.l2_loss(input_.targets - C)
+        self.loss = tf.nn.l2_loss(targets - C)
 
         opt = tf.train.AdadeltaOptimizer(learning_rate=0.001,
                                          rho=0.95,

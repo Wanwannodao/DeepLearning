@@ -15,7 +15,7 @@ class Input():
 
 class Config():
     batch_size  = 20
-    num_steps   = 50
+    num_steps   = 50 + 1 # number of indices + stop symbol
     hidden_size = 256
 
 def main(_):
@@ -34,10 +34,10 @@ def main(_):
         coord   = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
-        sess.run(ptrnet.train_op)
-        loss = sess.run(ptrnet.loss)
-
-        print(loss)
+        for _ in range(1000):
+            sess.run(ptrnet.train_op)
+            loss = sess.run(ptrnet.loss)
+            print(loss)
         
         coord.request_stop()
         coord.join(threads)
