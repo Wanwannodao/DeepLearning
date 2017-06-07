@@ -1,9 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python33
 # -*- coding: utf-8 -*-
 
 import tensorflow as tf
 import numpy as np
 import inspect
+import matplotlib.pyplot as plt
 
 _GO  = "output"
 _STOP = 51
@@ -141,3 +142,33 @@ def batch_producer(enc, dec, batch_size, name=None):
 #        coord.join(threads)
     
                     
+# ====================
+# visualization
+# ====================
+def visualize_loss_from_file(filename):
+    loss = np.loadtxt(filename, delimiter=",")
+    plt.plot(loss, color="orange")
+    plt.title("Learning curve")
+    plt.xlabel("epoch", fontname="serif")
+    plt.ylabel("loss", fontname="serif")
+
+    plt.savefig("loss.png")
+
+def plot(data, dec, filename="data.png"):
+    idx    = dec[ np.where(dec != 51)[0] ]
+    convex = data[idx, :] 
+    
+    x = data[1:, 0]
+    y = data[1:, 1]
+    convex_x = convex[1:, 0]
+    convex_y = convex[1:, 1]
+    
+    plt.scatter(x, y)
+    #plt.plot(convex_x, convex_y, color="orange")
+    plt.plot(points[convex_x], pio
+    plt.xlim(0.0, 1.0)
+    plt.ylim(0.0, 1.0)
+    plt.savefig(filename)
+
+    plt.clf()
+    plt.close()

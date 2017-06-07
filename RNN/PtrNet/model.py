@@ -41,13 +41,13 @@ class PtrNet():
         
         # Decoder
         # ( fc > elu > lstm > v^t tanh(W1 e + W2 d) > softmax > argmax )
-        print(in_shape)
         dec_state  = enc_states[-1]
-        dec_inputs = tf.constant(0.0,
+        dec_inputs = tf.constant(-1.0,
                                  shape=[batch_size, 2],
                                  dtype=tf.float32) # start symbol
         
-        self.C = []
+        self.C_prob = []
+        self.C_idx = []
         with tf.variable_scope("dec"):
             for i in range(num_steps):
                 if i > 0: tf.get_variable_scope().reuse_variables()
@@ -91,25 +91,22 @@ class PtrNet():
                 C_i   = tf.reshape(tf.cast(tf.argmax(probs, axis=1), tf.int32),
                                    shape=[batch_size, 1])
 
-
+                self.C_idx.append(C_i)
+                
                 first      = tf.expand_dims(tf.range(batch_size), axis=1)
                 dec_inputs = tf.gather_nd(input_.input_data,
                                           tf.concat(values=[first, C_i],
                                                     axis=1))
                 
-                self.C.append(probs)
+                self.C_prob.append(probs)
                 
-        C = tf.squeeze(tf.stack(self.C, axis=1))
+        self.C_prob = tf.squeeze(tf.stack(self.C_prob, axis=1))
+        self.C_idx  = tf.squeeze(tf.stack(self.C_idx, axis=1))
         
-        print(C.get_shape())
-        print(input_.targets.get_shape())
-
         targets = tf.one_hot(input_.targets,
-                       depth=51)
-
-        print(t.get_shape())
+                       depth=51)        
         
-        self.loss = tf.nn.l2_loss(targets - C)
+        self.loss = tf.nn.l2_loss(targets - self.C_prob)
 
         opt = tf.train.AdadeltaOptimizer(learning_rate=0.001,
                                          rho=0.95,
