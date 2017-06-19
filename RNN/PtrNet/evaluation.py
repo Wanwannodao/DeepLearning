@@ -49,13 +49,16 @@ def main(_):
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
         C = np.asarray(sess.run(ptrnet.C_idx))
-        #print(C)
-        print(C[[27, 58, 67]])
-        
-        utils.plot(enc_data[27], C[27, :13], "eval_{}.png".format(27))
-        utils.plot(enc_data[58], C[58, 5:14], "eval_{}.png".format(58))
-        utils.plot(enc_data[67], C[67, 2:9], "eval_{}.png".format(67))
 
+        #for i in range(100):
+        #    utils.plot(enc_data[i], C[i, :], "eval_{}.png".format(i))
+        #print(C)
+        idx = [6, 8, 18, 53, 63, 75, 84]
+        end = [10, 9, 9, 9, 10, 10, 10]
+        print(C[idx])
+        for i, j in zip(idx, end):
+            utils.plot(enc_data[i], C[i, :j], "eval_{}.png".format(i))
+            
         coord.request_stop()
         coord.join(threads)
         

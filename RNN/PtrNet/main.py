@@ -5,8 +5,9 @@ import tensorflow as tf
 
 import utils
 from model import PtrNet
+import os
 
-flags = tf.app.FLAGS
+flags = tf.app.flags
 
 flags.DEFINE_bool("restore", False, "load checkpoint")
 
@@ -35,10 +36,7 @@ def train(sess, ptrnet, saver):
         saver.save(sess, "./checkpoint/model.ckpt")           
 
         with open('loss.csv', 'a') as f:
-            f.write("{},".format(loss))
-
-def eval(sess, ptrnet):
-    
+            f.write("{},".format(loss))    
 
 def main(_):
     config             = Config()
@@ -46,7 +44,7 @@ def main(_):
     
     input_ = Input(config, enc_data, dec_data)
 
-    ptrnet = PtrNet(is_training=FLAGS.traning,
+    ptrnet = PtrNet(
                     config=config,
                     input_=input_)
 
@@ -60,7 +58,7 @@ def main(_):
             if not os.path.exists("./checkpoint"):
                 print("checkpoint is not found")
             else:
-                saver.restore("./checkpoint/model.ckpt")
+                saver.restore(sess, "./checkpoint/model.ckpt")
                 
         coord   = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)

@@ -7,7 +7,7 @@ import inspect
 import matplotlib.pyplot as plt
 
 _GO  = "output"
-_STOP = 51
+_STOP = 0
 
 # ====================
 # ops
@@ -76,7 +76,6 @@ def _load_data(data_path):
                     enc.insert(0, '-1.0')
                     enc.insert(0, '-1.0')
 
-                    # TODO: is this necessary ??
                     while len(dec) != len(enc) // 2:
                         dec = np.append(dec, _STOP)
 
@@ -164,8 +163,7 @@ def plot(data, dec, filename="data.png"):
     convex_y = convex[1:, 1]
     
     plt.scatter(x, y)
-    #plt.plot(convex_x, convex_y, color="orange")
-    plt.plot(points[convex_x], pio
+    plt.plot(convex_x, convex_y, color="orange")
     plt.xlim(0.0, 1.0)
     plt.ylim(0.0, 1.0)
     plt.savefig(filename)

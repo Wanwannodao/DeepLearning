@@ -5,7 +5,7 @@ import tensorflow as tf
 import utils
 
 class PtrNet():
-    def __init__(self, is_training, config, input_):
+    def __init__(self, config, input_, is_training=True):
 
         batch_size = input_.batch_size
         num_steps  = input_.num_steps   # for truncated backprop.
@@ -42,7 +42,7 @@ class PtrNet():
         # Decoder
         # ( fc > elu > lstm > v^t tanh(W1 e + W2 d) > softmax > argmax )
         dec_state  = enc_states[-1]
-        dec_inputs = tf.constant(-1.0,
+        dec_inputs = tf.constant(0.0,
                                  shape=[batch_size, 2],
                                  dtype=tf.float32) # start symbol
         
