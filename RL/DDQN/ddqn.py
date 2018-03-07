@@ -34,7 +34,7 @@ class DDQN:
 
         # add offset 
         first = tf.expand_dims(tf.range(self.batch_size), axis=1)
-        indices = tf.concat(values=[first, self.a], concat_dim=1)
+        indices = tf.concat(values=[first, self.a], axis=1)
         # gather corresiponding q_vals
         self.q_val = tf.expand_dims(tf.gather_nd(self.probs, indices), axis=1)
 
@@ -48,7 +48,7 @@ class DDQN:
         a_max = tf.to_int32(a_max)
         target_q_val = tf.expand_dims(
             tf.gather_nd(target_Q(self.s_),
-                         tf.concat(values=[first, a_max], concat_dim=1))
+                         tf.concat(values=[first, a_max], axis=1))
             , axis=1)
         self.y = self.r + gamma*(1.0 - self.done)*target_q_val
         # Error Clipping 
